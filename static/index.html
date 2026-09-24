@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Data Dashboard Connector — Weather</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; }
+      input[type=text]{ width: 300px; padding: 0.5rem }
+      button { padding: 0.5rem 1rem }
+      pre { background: #f6f8fa; padding: 1rem; }
+      .section { margin-top: 1rem }
+    </style>
+  </head>
+  <body>
+    <h1>Data Dashboard Connector — Weather</h1>
+    <p>Type a question like: "What's the weather in Tokyo?"</p>
+    <div>
+      <input id="question" type="text" placeholder="What's the weather in Tokyo?" />
+      <button id="ask">Ask</button>
+    </div>
+
+    <div class="section">
+      <strong>LLM Thought</strong>
+      <pre id="thought">(no query yet)</pre>
+    </div>
+
+    <div class="section">
+      <strong>Tool Output (raw)</strong>
+      <pre id="tool">(no query yet)</pre>
+    </div>
+
+    <div class="section">
+      <strong>Final Answer</strong>
+      <pre id="final">(no query yet)</pre>
+    </div>
+
+    <script>
+      const askBtn = document.getElementById('ask');
+      const questionInput = document.getElementById('question');
+      const thoughtEl = document.getElementById('thought');
+      const toolEl = document.getElementById('tool');
+      const finalEl = document.getElementById('final');
+
+      async function ask() {
+        const q = questionInput.value || "What's the weather in Tokyo?";
+        thoughtEl.textContent = 'Thinking...';
+        toolEl.textContent = '';
+        finalEl.textContent = '';
+
+        const res = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q })
+        });
+        const data = await res.json();
+
+        // display step-by-step
+        thoughtEl.textContent = data.thought;
+        toolEl.textContent = JSON.stringify(data.tool_output, null, 2);
+        finalEl.textContent = data.final_answer;
+      }
+
+      askBtn.addEventListener('click', ask);
+      questionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ask(); });
+    </script>
+  </body>
+</html>
